@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/giaco/Documents/GitHub/gomix_ecai_demo/demo-app/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

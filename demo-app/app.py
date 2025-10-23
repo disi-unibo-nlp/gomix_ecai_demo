@@ -94,6 +94,28 @@ custom_css = """
 }
 h1, h2, h3 { letter-spacing: .2px; }
 button.primary { box-shadow: 0 6px 18px rgba(37,99,235,.25); }
+
+/* Protein info table - adapt to light/dark mode */
+.protein-info-table {
+  color: var(--body-text-color);
+}
+.dark .protein-info-table {
+  color: white;
+}
+.light .protein-info-table, body:not(.dark) .protein-info-table {
+  color: black;
+}
+
+/* Protein description - adapt to light/dark mode */
+.protein-description {
+  color: var(--body-text-color);
+}
+.dark .protein-description {
+  color: white;
+}
+.light .protein-description, body:not(.dark) .protein-description {
+  color: black;
+}
 """
 
 INTRO_MD = f"""
@@ -126,7 +148,7 @@ TOOLTIPS = {
 }
 
 TABLE_MARKDOWN = f"""
-<div align="center">
+<div align="center" class="protein-info-table">
 
   <h2><strong>{{{{Protein Name}}}}</strong></h2>
   <h3>
@@ -181,14 +203,13 @@ TABLE_MARKDOWN = f"""
 
 DESCRIPTION_MARKDOWN = """
 <b>Description:</b><br/>
-<div style="
-    height:95px; 
-    overflow:auto; 
-    border-radius:8px; 
-    border: none; 
-    padding:12px; 
-    background-color: transparent; 
-    color: white; 
+<div class="protein-description" style="
+    height:95px;
+    overflow:auto;
+    border-radius:8px;
+    border: none;
+    padding:12px;
+    background-color: transparent;
     font-size:0.95em;
 ">
 {{Description}}
