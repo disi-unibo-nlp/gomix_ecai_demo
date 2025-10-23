@@ -8,8 +8,12 @@ HERE = Path(__file__).resolve().parent
 sys.path.append(str(HERE / "../../"))
 from gomix.src.solution.components.naive.NaiveLearner import NaiveLearner
 
-TASK_DATASET_PATH = os.path.join(HERE, "../../gomix/src/data/processed/task_datasets/2016")
-TRAIN_ANNOTATIONS_FILE_PATH = os.path.join(TASK_DATASET_PATH, 'propagated_annotations', 'train.json')
+# TASK_DATASET_PATH = os.path.join(HERE, "../../gomix/src/data/processed/task_datasets/2016")
+# TRAIN_ANNOTATIONS_FILE_PATH = os.path.join(TASK_DATASET_PATH, 'propagated_annotations', 'train.json')
+
+# FOR THE DEMO
+DEMO_UTILS = os.path.join(HERE, "../../gomix/src/demo_utils")
+TRAIN_ANNOTATIONS_FILE_PATH = os.path.join(DEMO_UTILS, 'propagated_annotations', 'train.json')
 
 def predict() -> List[tuple]:
     with open(TRAIN_ANNOTATIONS_FILE_PATH, 'r') as f:
