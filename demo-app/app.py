@@ -30,12 +30,15 @@ METHODS_NAMES = [
     "Stacked Ensemble",
 ]
 
-TASK_DATASET_PATH = os.path.join(ROOT, "../gomix/src/data/processed/task_datasets/2016")
-TEST_ANNOTATIONS_FILE_PATH = os.path.join(TASK_DATASET_PATH, 'annotations', 'test.json')
+# TASK_DATASET_PATH = os.path.join(ROOT, "../gomix/src/data/processed/task_datasets/2016")
+# TEST_ANNOTATIONS_FILE_PATH = os.path.join(TASK_DATASET_PATH, 'annotations', 'test.json')
+
 
 DEMO_UTILS = os.path.join(ROOT, "../gomix/src/demo_utils")
+TEST_ANNOTATIONS_FILE_PATH = os.path.join(DEMO_UTILS, 'annotations', 'test.json')
 TEST_ANNOTATIONS_INFO_FILE_PATH = os.path.join(DEMO_UTILS, 'test_uniprotid_info_formatted.txt')
 PROTEIN_IMGS_PATH = os.path.join(DEMO_UTILS, 'imgs') 
+
 
 
 def predict(protein_id: str, method: str, topk: int):
@@ -58,9 +61,10 @@ def predict(protein_id: str, method: str, topk: int):
     df = pd.DataFrame(predictions, columns=["GO_ID", "Score"]).sort_values("Score", ascending=False)
     df_top = df.head(int(topk)).reset_index(drop=True)
     
-    # Batch fetch descriptions for all GO codes
+    # Batch fetch names and descriptions for all GO codes
     go_codes = df_top["GO_ID"].tolist()
-    descriptions_map = find_multiple_gocode_descriptions(go_codes)
+    names_map, descriptions_map = find_multiple_gocode_descriptions(go_codes)
+    df_top["Name"] = df_top["GO_ID"].map(names_map)
     df_top["Description"] = df_top["GO_ID"].map(descriptions_map)
 
     meta = f"Protein ID: {protein_id} | Method: {method}"
@@ -97,8 +101,6 @@ INTRO_MD = f"""
 
 This is a demo UI for the paper **_Predicting Protein Functions with Ensemble Deep Learning and Protein Language Models_**.
 
-### Key Innovations
-
 The paper presents an ensemble approach to automated **Protein Function Prediction (PFP)** leveraging both traditional approaches, such as **protein sequence alignment**, and advanced techniques like **protein language models**.
 
 To encode protein sequences, the paper uses the **ESM2 model**, a state-of-the-art transformer-based protein language model.
@@ -110,12 +112,6 @@ The stacked ensemble combines six diverse prediction strategies:
 - **EmbeddingSimilarityScore**: A method using embeddings from protein language models.
 - **FC on embeddings**: A feedforward classifier applied to embeddings.
 - **GNN on PPI & embeddings**: A graph neural network utilizing both PPI and embeddings.
-
-### How to Use the Demo
-
-Select a Protein ID and choose a prediction method to explore how different approaches contribute to the final ensemble. 
-
-You can also specify the number of top predictions (Top-K) to display.
 """
 
 #**Note:** The following methods are implemented with actual components: Naive, DiamondScore, InteractionScore, and EmbeddingSimilarityScore. Other methods still use placeholder implementations. If the required data files are not found, the app will fall back to using placeholder implementations for all methods.
@@ -289,19 +285,20 @@ def find_gocode_description(go_code):
         return "Description not found."
 
     definition = results[0].get("definition", {})
+    result_name = results[0].get("name", "")
     definition_text = definition.get("text", "Description not found.")
-    return definition_text
+    return result_name, definition_text
 
 
 def find_multiple_gocode_descriptions(go_codes):
     """
     Fetch descriptions for multiple GO codes in a single API call.
-    Returns a dictionary mapping GO code to description.
+    Returns two dictionaries: one mapping GO code to name, another to description.
     """
     import requests
     
     if not go_codes:
-        return {}
+        return {}, {}
     
     # Join GO codes with OR for batch query
     query = " OR ".join(go_codes)
@@ -316,30 +313,35 @@ def find_multiple_gocode_descriptions(go_codes):
     try:
         r = requests.get(requestURL, headers={"Accept": "application/json"}, params=params)
         if r.status_code != 200:
-            # Fallback to empty dict
-            return {code: "Description not found." for code in go_codes}
+            # Fallback to empty dicts
+            return {code: "Name not found." for code in go_codes}, {code: "Description not found." for code in go_codes}
         
         data = r.json()
         results = data.get("results", [])
         
-        # Create mapping from GO ID to description
+        # Create mappings from GO ID to name and description
+        names = {}
         descriptions = {}
         for result in results:
             go_id = result.get("id", "")
+            result_name = result.get("name", "Name not found.")
             definition = result.get("definition", {})
             definition_text = definition.get("text", "Description not found.")
+            names[go_id] = result_name
             descriptions[go_id] = definition_text
         
         # Fill in any missing codes
         for code in go_codes:
+            if code not in names:
+                names[code] = "Name not found."
             if code not in descriptions:
                 descriptions[code] = "Description not found."
         
-        return descriptions
+        return names, descriptions
     
     except Exception as e:
         # Fallback in case of error
-        return {code: "Description not found." for code in go_codes}
+        return {code: "Name not found." for code in go_codes}, {code: "Description not found." for code in go_codes}
 
 ############
 # MAIN APP #
@@ -386,11 +388,26 @@ def build_app():
                     return render_desc_from_key(selected_protein, test_annotations)
                 protein_sel.change(update_description, inputs=[protein_sel], outputs=[description_md])
                 
-            # PROTEIN IMAGE
-        protein_img = gr.Image(label="Protein Structure", type="filepath", height=300)
+        # PROTEIN IMAGE
+        protein_img = gr.Image(label="Protein Structure", type="filepath", height=300)        
+        
         def update_protein_image(selected_protein):
             return get_protein_image_path(selected_protein)
+        
         protein_sel.change(update_protein_image, inputs=[protein_sel], outputs=[protein_img])
+        
+        # UniProt link button
+        uniprot_link = gr.Button("🔗 View on UniProt", variant="secondary", size="sm")
+        uniprot_link.click(
+            lambda selected_protein: None,
+            inputs=[protein_sel],
+            outputs=None,
+            js="""(selected_protein) => {
+                const code = selected_protein.split(' - ')[0].trim();
+                const url = `https://www.uniprot.org/uniprotkb/${code}/entry`;
+                window.open(url, '_blank');
+            }"""
+        )
 
         gr.Markdown("")
         gr.Markdown("---")
@@ -398,13 +415,13 @@ def build_app():
 
         meta = gr.Markdown("")
         out_df = gr.Dataframe(
-            headers=["", "GO_ID", "Score", "Description"],
-            datatype=["str", "str", "number", "str"],
+            headers=["", "GO_ID", "Score", "Name", "Description"],
+            datatype=["str", "str", "number", "str", "str"],
             label="Predictions",
             interactive=False,
             wrap=True,
             row_count=(0, "dynamic"),
-            column_widths=["5%", "15%", "20%", "60%"],
+            column_widths=["5%", "12%", "20%", "15%", "48%"],
         )
 
         truth_stats = gr.Markdown("")
@@ -430,8 +447,8 @@ def build_app():
             predicted_go_codes = set(df_pred["GO_ID"].tolist())
             truth_go_codes = set(truth_terms)
             
-            # Add Prediction column with checkmark or cross
-            df_pred.insert(0, "Prediction", df_pred["GO_ID"].apply(lambda x: "✓" if x in truth_go_codes else "✗"))
+            # Add Prediction column with good bad emoji 
+            df_pred.insert(0, "", df_pred["GO_ID"].apply(lambda x: "🟢" if x in truth_go_codes else "🔴"))
             
             # Calculate statistics
             matches = predicted_go_codes.intersection(truth_go_codes)
@@ -482,17 +499,17 @@ def build_app():
         #     label="Examples",
         # )
 
-        gr.Markdown(
-            """
-**Disclaimer:** This UI is for demonstration purposes. Some methods are implemented with actual components:
-- Naive: Uses frequency of GO terms in the training data
-- DiamondScore: Uses BLAST to find similar proteins and their GO terms
-- InteractionScore: Uses PPI network to find interacting proteins and their GO terms
-- EmbeddingSimilarityScore: Uses cosine similarity between protein sequence embeddings
+#         gr.Markdown(
+#             """
+# **Disclaimer:** This UI is for demonstration purposes. Some methods are implemented with actual components:
+# - Naive: Uses frequency of GO terms in the training data
+# - DiamondScore: Uses BLAST to find similar proteins and their GO terms
+# - InteractionScore: Uses PPI network to find interacting proteins and their GO terms
+# - EmbeddingSimilarityScore: Uses cosine similarity between protein sequence embeddings
 
-Other methods (FC on embeddings, GNN on PPI & embeddings, Stacked Ensemble) still use placeholder implementations.
-"""
-        )
+# Other methods (FC on embeddings, GNN on PPI & embeddings, Stacked Ensemble) still use placeholder implementations.
+# """
+#         )
     return demo
 
 

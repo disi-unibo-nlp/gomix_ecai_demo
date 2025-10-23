@@ -1,9 +1,9 @@
 {
   "AGRA2_HUMAN": {
-    "initial_name": "P05106 - AGRA2_HUMAN",
-    "gene": "ITGB3",
+    "initial_name": "Q96PE1 - AGRA2_HUMAN",
+    "gene": "ADGRA2",
     "organism": "Homo sapiens",
-    "amino_acids": 788,
+    "amino_acids": 1338,
     "protein_existence": "1: Evidence at protein level",
     "annotation_score": 5.0,
     "description": "These are proteins found on the surface of cells that help them attach to other cells and the surrounding environment. They are important for blood clotting, helping platelets stick together to stop bleeding, and for communication and movement of cells. They also play a role in brain signaling and in controlling how cells respond to growth and signaling molecules."
@@ -36,12 +36,12 @@
     "description": "APEX1 is a protein that helps keep our DNA healthy. It works like a repair worker in cells, finding spots where DNA is damaged or missing a piece and cutting the DNA so it can be fixed. This protein also helps remove mistakes in DNA and may play a role in regulating which genes are turned on or off. By doing these jobs, APEX1 is essential for proper cell development and maintaining the stability of our genetic material."
   },
   "APBB3_MOUSE": {
-    "initial_name": "P08592 - APBB3_MOUSE",
-    "gene": "App",
+    "initial_name": "Q8R1C9 - APBB3_MOUSE",
+    "gene": "Apbb3",
     "organism": "Brown rat",
-    "amino_acids": 770,
-    "protein_existence": "1: Evidence at protein level",
-    "annotation_score": 5.0,
+    "amino_acids": 486,
+    "protein_existence": "2: Evidence at transcript level",
+    "annotation_score": 3.0,
     "description": "APBB3 is a protein found in brain cells that helps other proteins connect and communicate. It plays an important role in nerve cell growth, the formation of connections between neurons (synapses), and the movement of materials inside nerve cells. APBB3 can influence how signals are sent in the brain, support cell survival, and help manage stress caused by metals like copper. Some forms of this protein can also act as a natural protease inhibitor, helping to regulate protein activity. Problems with this protein may affect brain function and are linked to processes involved in neurodegenerative diseases like Alzheimer's."
   },
   "AA3R_MOUSE": {
@@ -54,10 +54,10 @@
     "description": "This protein acts like a signal receiver on the surface of cells. It detects a molecule called adenosine and sends messages inside the cell to help control important processes, such as heart rate, inflammation, and protecting cells during stress."
   },
   "ATAD5_MOUSE": {
-    "initial_name": "P13405 - ATAD5_MOUSE",
-    "gene": "Rb1",
+    "initial_name": "Q4QY64 - ATAD5_MOUSE",
+    "gene": "Atad5",
     "organism": "House mouse",
-    "amino_acids": 921,
+    "amino_acids": 1826,
     "protein_existence": "1: Evidence at protein level",
     "annotation_score": 5.0,
     "description": "RB1 is a protein that acts like a brake for cell growth. It helps control when a cell can copy its DNA and divide, preventing mistakes that could lead to cancer. RB1 does this by blocking certain genes from turning on and keeping the cell's DNA structure organized."
