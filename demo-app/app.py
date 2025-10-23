@@ -383,14 +383,14 @@ def build_app():
             with gr.Column():
                 protein_sel = gr.Dropdown(
                     choices=keys_list,
-                    value=None,
+                    value=keys_list[0] if keys_list else None,
                     label="Protein ID",
                 )
                 gr.Markdown("")
                 with gr.Column():
                     method = gr.Dropdown(
                         METHODS_NAMES,
-                        value=None,
+                        value=METHODS_NAMES[0] if METHODS_NAMES else None,
                         label="Method",
                     )
                     topk = gr.Slider(3, 10, value=5, step=1, label="Top-K")
