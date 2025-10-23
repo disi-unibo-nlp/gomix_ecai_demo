@@ -80,7 +80,7 @@ theme = gr.themes.Soft(
 )
 
 custom_css = """
-.gradio-container { max-width: 980px; margin: auto; }
+.gradio-container { max-width: 1100px; margin: auto; }
 :root, :host {
   --color-accent: #2563eb;                 /* primary blue */
   --color-accent-soft: rgba(37,99,235,.12);
@@ -90,7 +90,12 @@ custom_css = """
   background: linear-gradient(180deg, var(--color-accent-soft), transparent 65%);
   border: 1px solid rgba(37,99,235,.18);
   border-radius: 16px;
-  padding: 16px 20px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+#intro .image-container img {
+  border-radius: 12px;
+  object-fit: contain;
 }
 h1, h2, h3 { letter-spacing: .2px; }
 button.primary { box-shadow: 0 6px 18px rgba(37,99,235,.25); }
@@ -118,23 +123,108 @@ button.primary { box-shadow: 0 6px 18px rgba(37,99,235,.25); }
 }
 """
 
-INTRO_MD = f"""
-# {APP_NAME}: Protein Function Prediction - Demo
+LOGO_PATH = os.path.join(DEMO_UTILS, 'imgs', 'gomix_icon.png')
 
-This is a demo UI for the paper **_Predicting Protein Functions with Ensemble Deep Learning and Protein Language Models_**.
+def create_intro_section():
+    """
+    Creates the intro section with logo, title, and tabbed content.
+    """
+    with gr.Row(elem_id="intro"):
+        # Logo column
+        with gr.Column(scale=1, min_width=60):
+            gr.Image(
+                value=LOGO_PATH,
+                show_label=False,
+                show_download_button=False,
+                container=False,
+                height=60,
+                width=60
+            )
 
-The paper presents an ensemble approach to automated **Protein Function Prediction (PFP)** leveraging both traditional approaches, such as **protein sequence alignment**, and advanced techniques like **protein language models**.
+        # Title and content column
+        with gr.Column(scale=9):
+            gr.Markdown(f"# {APP_NAME}: Protein Function Prediction")
 
-To encode protein sequences, the paper uses the **ESM2 model**, a state-of-the-art transformer-based protein language model.
+            with gr.Tabs():
+                with gr.Tab("Context"):
+                    gr.Markdown("""
+**Understanding proteins is key to understanding life itself.**
 
-The stacked ensemble combines six diverse prediction strategies:
-- **Naive**: A simple baseline method.
-- **DiamondScore**: A method based on sequence alignment.
-- **InteractionScore**: A method leveraging protein-protein interaction data.
-- **EmbeddingSimilarityScore**: A method using embeddings from protein language models.
-- **FC on embeddings**: A feedforward classifier applied to embeddings.
-- **GNN on PPI & embeddings**: A graph neural network utilizing both PPI and embeddings.
-"""
+Proteins are essential molecules that perform a wide range of functions in all living organisms. They are large molecules composed of 20 types of building blocks called **amino acids**, which are linked sequentially to form the **protein sequence**. This sequence determines the protein's 3D structure, dynamics, and ultimately its biological function.
+
+With every breath, meal, and workout, your body uses complex protein interactions. Nearly every biological process—like transporting oxygen, building muscle, and fighting disease—relies on proteins. However, we still don't fully understand what many proteins do.
+
+**The Challenge:** Due to ongoing genome sequencing projects, we have vast amounts of sequence data from thousands of species. Yet accurately assigning biological function to these proteins remains difficult because:
+- Many proteins have multiple functions
+- Proteins interact with multiple partners
+- Experimental validation is time-consuming and expensive
+
+**This Demo:** We predict **GO (Gene Ontology) terms** for proteins based on their amino acid sequences. GO terms describe:
+- What the protein does (molecular function)
+- Which biological processes it participates in
+- Where in the cell it operates (cellular component)
+
+A well-performing model can help scientists narrow down protein roles faster, prioritize lab experiments, and spot connections that might otherwise go unnoticed.
+                    """)
+
+                with gr.Tab("How does GOMix work?"):
+                    gr.Markdown("""
+**GOMix** is an open-source ensemble framework that combines multiple prediction strategies to achieve robust protein function prediction.
+
+**Key Components:**
+
+1. **Protein Encoding:** Uses **ESM2**, a state-of-the-art transformer-based protein language model, to convert amino acid sequences into rich numerical representations (embeddings).
+
+2. **Ensemble of Six Methods:**
+   - **Naive:** Baseline using frequency of GO terms in training data
+   - **DiamondScore:** Sequence alignment-based (BLAST-like) similarity
+   - **InteractionScore:** Leverages protein-protein interaction (PPI) networks
+   - **EmbeddingSimilarityScore:** Cosine similarity between protein embeddings
+   - **FC on embeddings:** Feedforward neural network classifier on embeddings
+   - **GNN on PPI & embeddings:** Graph neural network combining PPI structure and embeddings
+
+3. **Stacked Ensemble:** Combines predictions from all six methods to produce final, more reliable predictions.
+
+This multi-strategy approach captures different aspects of protein function—from sequence similarity to network context to deep learned patterns—making predictions more robust and accurate than any single method alone.
+                    """)
+
+                with gr.Tab("Evaluation & Performance"):
+                    gr.Markdown("""
+**Dataset:** GOMix was evaluated on the 2016 CAFA-3 compliant dataset:
+- **Training:** Proteins with experimental annotations before January 2016
+- **Test:** Proteins with annotations obtained between January-October 2016
+
+**Evaluation Metrics:**
+- **F_max:** Maximum F1 score achievable (balances precision and recall)
+- **S_min:** Minimum semantic distance between predicted and actual GO labels
+- **AUPR:** Area under the precision-recall curve
+
+**Key Considerations:**
+- All annotations follow the **True Path Rule**: if a GO term is annotated, all its ancestor terms are also annotated
+- Evaluation sweeps confidence thresholds from 0 to 1 to find optimal operating points
+- **Open-world assumption:** Some predictions may be correct but not yet experimentally validated
+
+**Note:** In this demo, green circles (🟢) indicate correct predictions (matching ground truth), while red circles (🔴) indicate predictions not in the current ground truth. Remember that red predictions aren't necessarily "wrong"—they might be valid but not yet experimentally confirmed.
+                    """)
+
+                with gr.Tab("About"):
+                    gr.Markdown("""
+This is a demo application for the paper **_"Predicting Protein Functions with Ensemble Deep Learning and Protein Language Models"_**.
+
+**Purpose:** This interface demonstrates how ensemble learning can be applied to automated Protein Function Prediction (PFP), bridging traditional bioinformatics approaches with modern deep learning techniques.
+
+**Implementation Status:**
+- Fully implemented methods: Naive, DiamondScore, InteractionScore, EmbeddingSimilarityScore
+- Other methods (FC, GNN, Stacked Ensemble) use placeholder implementations in this demo
+
+**Learn More:**
+- Select a protein from the dropdown to view its metadata and structure
+- Choose a prediction method and adjust the number of top predictions (Top-K)
+- Compare predictions with ground truth annotations
+- Explore how different methods perform on various proteins
+
+Understanding protein function is a small step for AI, but a giant leap for medicine and biology!
+                    """)
 
 #**Note:** The following methods are implemented with actual components: Naive, DiamondScore, InteractionScore, and EmbeddingSimilarityScore. Other methods still use placeholder implementations. If the required data files are not found, the app will fall back to using placeholder implementations for all methods.
 
@@ -374,7 +464,7 @@ def build_app():
     keys_list = list(test_annotations.keys())
 
     with gr.Blocks(title=f"{APP_NAME} — Protein Function Prediction", theme=theme, css=custom_css) as demo:
-        gr.Markdown(INTRO_MD, elem_id="intro")
+        create_intro_section()
 
         gr.Markdown("---")
         gr.Markdown("")
