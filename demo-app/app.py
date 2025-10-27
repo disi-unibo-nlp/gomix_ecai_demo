@@ -15,6 +15,7 @@ from solutionrunners.naive import predict as naive_predict
 from solutionrunners.diamondscore import predict as diamondscore_predict
 from solutionrunners.interactionscore import predict as interactionscore_predict
 from solutionrunners.embeddingsimilarityscore import predict as embeddingsimilarityscore_predict
+from solutionrunners.stackedscore import predict as stackedscore_predict
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", handlers=[logging.StreamHandler()])
 
@@ -50,13 +51,15 @@ def predict(protein_id: str, method: str, topk: int):
         predictions = interactionscore_predict(protein_id)
     elif method == "EmbeddingSimilarityScore":
         predictions = embeddingsimilarityscore_predict(protein_id)
-    elif method in ("FC on embeddings", "GNN on PPI & embeddings", "Stacked Ensemble"):
+    elif method in ("FC on embeddings", "GNN on PPI & embeddings"):
         # Temporary placeholder. Need to implement.
         predictions = embeddingsimilarityscore_predict(protein_id)
         import random
         random.shuffle(predictions)
+    elif method == "Stacked Ensemble":
+        predictions = stackedscore_predict(protein_id)
     else:
-        raise 'Invalid method.'
+        raise ValueError('Invalid method.')
 
     df = pd.DataFrame(predictions, columns=["GO_ID", "Score"]).sort_values("Score", ascending=False)
     df_top = df.head(int(topk)).reset_index(drop=True)
